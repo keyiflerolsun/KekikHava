@@ -71,9 +71,9 @@ jobs:
         shell : bash
         run   : |
           cd ${{ matrix.output_dir }}
-
           if command -v 7z; then
-            7z a -mx9 ../${{ matrix.artifact_name }} *
+            # "-tzip" parametresi ile 7z aracını kullanıp zip formatında arşiv oluşturuyoruz
+            7z a -tzip -mx9 ../${{ matrix.artifact_name }} *
           else
             zip -r ../${{ matrix.artifact_name }} *
           fi
@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}
+          path: build/${{ matrix.artifact_name }}
 
   release:
     needs: build
