@@ -1,0 +1,128 @@
+name: Kekik Flet Derlemesi
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "**/*.md"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - platform      : linux
+            os            : ubuntu-latest
+            build_command : "flet build linux -v"
+            output_dir    : "build/linux"
+            artifact_name : "linux-build.zip"
+
+          - platform      : windows
+            os            : windows-latest
+            build_command : "flet build windows -v"
+            output_dir    : "build/windows"
+            artifact_name : "windows-build.zip"
+
+          - platform      : macos
+            os            : macos-latest
+            build_command : "flet build macos -v"
+            output_dir    : "build/macos"
+            artifact_name : "macos-build.zip"
+
+          - platform      : android
+            os            : ubuntu-latest
+            build_command : "flet build apk -v"
+            output_dir    : "build/apk"
+            artifact_name : "android-build.zip"
+
+          - platform      : ipa
+            os            : macos-latest
+            build_command : "flet build ipa -v"
+            output_dir    : "build/ipa"
+            artifact_name : "ipa-build.zip"
+
+    steps:
+      - name: 🚀 Repository’yi Kopyala
+        uses: actions/checkout@v4.2.2
+
+      - name: 🛠️ Python 3.11.8 Yükle
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: 3.11.8
+
+      - name: 📦 Gereksinimleri Yükle
+        run : |
+          python -m pip install --upgrade pip
+          pip install -Ur requirements.txt
+
+      - name: 🔨 Projeyi Derle
+        run : ${{ matrix.build_command }}
+
+      - name: 🗜️ Çıktıyı Arşivle
+        run : |
+          # 7z yüklü değilse zip komutunu kullanabilirsiniz.
+          if command -v 7z; then
+            7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
+          else
+            zip -r ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
+          fi
+
+      - name: 📤 Artifact Olarak Yükle
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
+
+  release:
+    needs   : build
+    runs-on : ubuntu-latest
+    steps   :
+      - name : 📥 Tüm Artifact'ları İndir
+        uses : actions/download-artifact@v3
+
+      - name : 🏷️ Versiyon Numarası Belirle
+        id   : version
+        run  : |
+          # Türkiye saat dilimine göre tarih formatı oluşturur.
+          VERSION=$(TZ="Turkey" date +"%Y.%m.%d-%H:%M:%S")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version: $VERSION"
+
+      - name : 🔥 Mevcut "latest" Release ve Tag'i Sil
+        env  :
+          GITHUB_TOKEN : ${{ secrets.GH_PAT }}
+          REPO         : ${{ github.repository }}
+        run  : |
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
+          if [ "$RELEASE_ID" != "null" ]; then
+            echo "Mevcut release ($RELEASE_ID) siliniyor..."
+            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
+            echo "Tag 'latest' siliniyor..."
+            git push --delete origin latest || true
+          else
+            echo "Mevcut release bulunamadı, devam ediliyor..."
+          fi
+
+      - name: 🚀 Güncel Sürümü GitHub Releases'a Yükle
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          env        :
+            GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          tag_name   : latest
+          name       : "Güncel Sürüm"
+          body       : "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
+          draft      : false
+          prerelease : false
+          files      : |
+            linux-build.zip
+            windows-build.zip
+            macos-build.zip
+            android-build.zip
+            ipa-build.zip
