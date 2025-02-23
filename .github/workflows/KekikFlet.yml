@@ -88,7 +88,7 @@ jobs:
     runs-on : ubuntu-latest
     steps   :
       - name : 📥 Tüm Artifact'ları İndir
-        uses : actions/download-artifact@v3
+        uses : actions/download-artifact@v4.1.8
 
       - name : 🏷️ Versiyon Numarası Belirle
         id   : version
