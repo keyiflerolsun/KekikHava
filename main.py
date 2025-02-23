@@ -1,19 +1,19 @@
 # Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
 
 from CLI     import cikis_yap, hata_yakala
-from flet    import app, Page, Divider
+import flet  as ft
 from Layouts import KekikFlet, HavaSorgu
 
-def ana_sayfa(sayfa:Page):
+def ana_sayfa(sayfa:ft.Page):
     KekikFlet(sayfa, "Hava Durumu | @KekikAkademi")
 
-    sayfa.add(Divider(height=1))
+    sayfa.add(ft.Divider(height=1))
 
     sayfa.add(HavaSorgu(sayfa))
 
 if __name__ == "__main__":
     try:
-        app(target=ana_sayfa)
+        ft.app(target=ana_sayfa)
         cikis_yap(False)
     except Exception as hata:
         hata_yakala(hata)
