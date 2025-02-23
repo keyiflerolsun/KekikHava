@@ -2,9 +2,5 @@ pip
 setuptools
 wheel
 Kekik
-requests
-aiohttp
-certifi
 flet
-pyinstaller
-pillow
+aiohttp

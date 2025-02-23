@@ -1,7 +1,6 @@
 # Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
 
-from flet.page import Page, ControlEvent
-from flet      import IconButton, AppBar, Icon, icons, PopupMenuButton, PopupMenuItem, Text
+from flet import Page, ControlEvent, IconButton, AppBar, Icon, icons, PopupMenuButton, PopupMenuItem, Text
 
 class KekikFlet:
     def __init__(self, sayfa:Page, baslik:str):

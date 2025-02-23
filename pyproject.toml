@@ -1,16 +1,21 @@
-[tool.poetry]
-name = "Hava Durumu | @KekikAkademi"
-version = "1.0"
+[project]
+name        = "Hava Durumu | @KekikAkademi"
+version     = "1.0"
 description = "@KekikAkademi'nin Hava Durumu Uygulaması"
-authors = ["keyiflerolsun <keyiflerolsun@gmail.com>"]
+readme      = "README.md"
+authors     = [
+    { name = "keyiflerolsun", email = "keyiflerolsun@gmail.com" }
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-pip = "^22.2.1"
-setuptools = "^63.2.0"
-wheel = "^0.37.1"
-requests = "^2.28.1"
-aiohttp = "^3.8.1"
-certifi = "^2022.6.15"
-flet = "^0.1.43"
-Pillow = "^9.2.0"
+requires-python = ">=3.11.8"
+dependencies    = [
+    "Kekik",
+    "flet",
+    "aiohttp"
+]
+
+[tool.flet]
+org       = "com.KekikAkademi"
+product   = "Hava Durumu | @KekikAkademi"
+company   = "@KekikAkademi"
+copyright = "Copyright (C) 2025 by @KekikAkademi"

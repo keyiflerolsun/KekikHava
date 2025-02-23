@@ -2,10 +2,8 @@
 
 from CLI import cikis_yap, hata_yakala
 
-from flet      import FLET_APP_HIDDEN, FLET_APP, WEB_BROWSER 
-from flet      import app as flet
-from flet.page import Page
-from flet      import Divider
+from flet import app as flet
+from flet import Page, Divider
 
 from Layouts import KekikFlet, HavaSorgu
 
@@ -18,7 +16,7 @@ def ana_sayfa(sayfa:Page):
 
 if __name__ == "__main__":
     try:
-        flet(target=ana_sayfa, view=FLET_APP_HIDDEN, port=3434, assets_dir="Assets")
+        flet(target=ana_sayfa)
         cikis_yap(False)
     except Exception as hata:
         hata_yakala(hata)

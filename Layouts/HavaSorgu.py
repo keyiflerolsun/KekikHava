@@ -3,17 +3,26 @@
 from Libs.HavaDurumu import hava_durumu
 from asyncio         import new_event_loop
 
-from flet.page import Page, ControlEvent
-from flet      import UserControl, icons, ElevatedButton, Text, TextField, ProgressBar, ProgressRing, Row, Container
+from flet import Page, ControlEvent, icons, ElevatedButton, Text, TextField, ProgressBar, ProgressRing, Row, Container
 
-class HavaSorgu(UserControl):
+class HavaSorgu(Container):
     def __init__(self, sayfa:Page):
         super().__init__()
-        self.sayfa = sayfa
+        self.sayfa   = sayfa
 
         self.arama_alani = TextField(label="Şehir Giriniz", width=200, tooltip="Örn.: Çanakkale", hint_text="Ankara, Turkiye")
         self.ara_butonu  = ElevatedButton(text="Arama Yap", icon=icons.SEARCH, on_click=self.arama_fonksiyonu)
         self.yukleniyor  = Row([Text(), ProgressRing()], alignment="start", spacing=20)
+
+        self.content = Row(
+            vertical_alignment = "center",
+            controls           = [
+                self.arama_alani,
+                self.ara_butonu
+            ]
+        )
+        self.height  = 120
+        self.padding = 20
 
     def arama_fonksiyonu(self, _:ControlEvent):
         if not self.arama_alani.value:
@@ -35,16 +44,3 @@ class HavaSorgu(UserControl):
         self.update()
 
         self.sayfa.add(arama_sonucu)
-
-    def build(self):
-        return Container(
-            content = Row(
-                controls           = [
-                    self.arama_alani,
-                    self.ara_butonu
-                ],
-                vertical_alignment = "center"
-            ),
-            height  = 120,
-            padding = 20
-        )
