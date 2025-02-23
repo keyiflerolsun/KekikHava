@@ -30,12 +30,6 @@ jobs:
             output_dir    : "build/windows"
             artifact_name : "windows-build.zip"
 
-          - platform      : macos
-            os            : macos-latest
-            build_command : "flet build macos -v"
-            output_dir    : "build/macos"
-            artifact_name : "macos-build.zip"
-
           - platform      : android
             os            : ubuntu-latest
             build_command : "flet build apk -v"
@@ -124,6 +118,5 @@ jobs:
           files      : |
             linux-build.zip
             windows-build.zip
-            macos-build.zip
             android-build.zip
             ipa-build.zip
