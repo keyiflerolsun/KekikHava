@@ -70,7 +70,8 @@ jobs:
       - name  : 🗜️ Çıktıyı Arşivle
         shell : bash
         run   : |
-          # 7z yüklü değilse zip komutunu kullanabilirsiniz.
+          cd ${{ matrix.output_dir }}
+
           if command -v 7z; then
             7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
           else
@@ -84,41 +85,39 @@ jobs:
           path: ${{ matrix.artifact_name }}
 
   release:
-    needs   : build
-    runs-on : ubuntu-latest
-    steps   :
-      - name : 📥 Tüm Artifact'ları İndir
-        uses : actions/download-artifact@v4.1.8
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
 
-      - name : 🏷️ Versiyon Numarası Belirle
-        id   : version
-        run  : |
-          # Türkiye saat dilimine göre tarih formatı oluşturur.
+      - name: Set Version Number
+        id: version
+        run: |
           VERSION=$(TZ="Turkey" date +"%Y.%m.%d-%H:%M:%S")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Version: $VERSION"
 
-      - name : 🔥 Mevcut "latest" Release ve Tag'i Sil
-        run  : |
+      - name: Delete Existing Latest Release
+        run: |
           RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
           if [ "$RELEASE_ID" != "null" ]; then
-            echo "Mevcut release ($RELEASE_ID) siliniyor..."
+            echo "Deleting release $RELEASE_ID..."
             curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
-            echo "Tag 'latest' siliniyor..."
             git push --delete origin latest || true
           else
-            echo "Mevcut release bulunamadı, devam ediliyor..."
+            echo "No existing release found, continuing..."
           fi
 
-      - name: 🚀 Güncel Sürümü GitHub Releases'a Yükle
-        uses: softprops/action-gh-release@v2.2.1
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name   : latest
-          name       : "Güncel Sürüm"
-          body       : "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
-          draft      : false
-          prerelease : false
-          files      : |
+          tag_name: latest
+          name: "Güncel Sürüm"
+          body: "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
+          draft: false
+          prerelease: false
+          files: |
             linux-build.zip
             windows-build.zip
             android-build.zip
