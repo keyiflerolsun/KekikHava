@@ -73,9 +73,9 @@ jobs:
           cd ${{ matrix.output_dir }}
 
           if command -v 7z; then
-            7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
+            7z a -mx9 ../${{ matrix.artifact_name }} *
           else
-            zip -r ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
+            zip -r ../${{ matrix.artifact_name }} *
           fi
 
       - name: 📤 Artifact Olarak Yükle
