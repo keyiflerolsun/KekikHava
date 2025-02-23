@@ -1,9 +1,8 @@
 # Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
 
-from Libs.HavaDurumu import hava_durumu
-from asyncio         import new_event_loop
-
 from flet import Page, ControlEvent, icons, ElevatedButton, Text, TextField, ProgressBar, ProgressRing, Row, Container
+
+from Libs.HavaDurumu import HavaDurumu
 
 class HavaSorgu(Container):
     def __init__(self, sayfa:Page):
@@ -24,7 +23,7 @@ class HavaSorgu(Container):
         self.height  = 120
         self.padding = 20
 
-    def arama_fonksiyonu(self, _:ControlEvent):
+    async def arama_fonksiyonu(self, _:ControlEvent):
         if not self.arama_alani.value:
             self.arama_alani.error_text = "Lütfen Şehir Giriniz!"
             return self.update()
@@ -35,7 +34,8 @@ class HavaSorgu(Container):
         self.update()
 
         arama_degeri = self.arama_alani.value
-        arama_verisi = new_event_loop().run_until_complete(hava_durumu(arama_degeri))
+        hava         = HavaDurumu(arama_degeri)
+        arama_verisi = await hava.ver()
         arama_sonucu = Row([Text(), Text(arama_verisi)], alignment="start", spacing=20)
 
         self.splash              = None

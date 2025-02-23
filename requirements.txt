@@ -3,4 +3,4 @@ setuptools
 wheel
 Kekik
 flet
-aiohttp
+httpx

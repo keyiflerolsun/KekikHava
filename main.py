@@ -1,10 +1,7 @@
 # Bu araç @keyiflerolsun tarafından | @KekikAkademi için yazılmıştır.
 
-from CLI import cikis_yap, hata_yakala
-
-from flet import app as flet
-from flet import Page, Divider
-
+from CLI     import cikis_yap, hata_yakala
+from flet    import app, Page, Divider
 from Layouts import KekikFlet, HavaSorgu
 
 def ana_sayfa(sayfa:Page):
@@ -16,7 +13,7 @@ def ana_sayfa(sayfa:Page):
 
 if __name__ == "__main__":
     try:
-        flet(target=ana_sayfa)
+        app(target=ana_sayfa)
         cikis_yap(False)
     except Exception as hata:
         hata_yakala(hata)
