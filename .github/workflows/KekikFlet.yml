@@ -96,9 +96,6 @@ jobs:
           echo "Version: $VERSION"
 
       - name : 🔥 Mevcut "latest" Release ve Tag'i Sil
-        env  :
-          GITHUB_TOKEN : ${{ secrets.GH_PAT }}
-          REPO         : ${{ github.repository }}
         run  : |
           RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
           if [ "$RELEASE_ID" != "null" ]; then
@@ -113,8 +110,6 @@ jobs:
       - name: 🚀 Güncel Sürümü GitHub Releases'a Yükle
         uses: softprops/action-gh-release@v2.2.1
         with:
-          env        :
-            GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           tag_name   : latest
           name       : "Güncel Sürüm"
           body       : "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
