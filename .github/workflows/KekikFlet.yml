@@ -75,7 +75,7 @@ jobs:
           fi
 
       - name: 📤 Artifact Olarak Yükle
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.artifact_name }}
