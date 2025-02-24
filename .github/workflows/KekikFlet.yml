@@ -69,12 +69,12 @@ jobs:
 
       - name : 📦 Çıktıları Sıkıştır
         run  : |
-          7z a -mx9 ${{ matrix.artifact_name }} -r ${{ matrix.output_dir }}/*
+          cd ${{ matrix.output_dir }}
+          7z a -mx9 ../../${{ matrix.artifact_name }} *
 
       - name: 📤 Artifact Yükle
         uses: actions/upload-artifact@v4.6.1
         with:
-          compression-level: 0
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.artifact_name }}
 
@@ -82,11 +82,14 @@ jobs:
     needs   : build
     runs-on : ubuntu-latest
     steps   :
+      - name: 🚀 Repository’yi Kopyala
+        uses: actions/checkout@v4.2.2
+
       - name : 🏷️ Versiyon Numarası Al
         id   : version
         shell: bash
         run  : |
-          VERSION=$(TZ="Europe/Istanbul" date +"%Y.%m.%d-%H.%M.%S")
+          VERSION=$(TZ="Europe/Istanbul" date +"%d.%m.%Y-%H:%M:%S")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: 📥 Artifact'leri İndir
