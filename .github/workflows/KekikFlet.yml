@@ -69,7 +69,7 @@ jobs:
 
       - name : 📦 Çıktıları Sıkıştır
         run  : |
-          7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}/*
+          7z a -mx9 ${{ matrix.artifact_name }} -r ${{ matrix.output_dir }}/*
 
       - name: 📤 Artifact Yükle
         uses: actions/upload-artifact@v4.6.1
@@ -97,12 +97,12 @@ jobs:
       - name: 🔥 Mevcut "latest" Release ve Tag'i Sil
         run : |
           RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.event.repository.name }}/releases/tags/latest" | jq -r .id)
+            "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/tags/latest" | jq -r .id)
 
           if [[ "$RELEASE_ID" != "null" ]]; then
             echo "Mevcut release ($RELEASE_ID) siliniyor..."
             curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.event.repository.name }}/releases/$RELEASE_ID"
+              "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/$RELEASE_ID"
 
             echo "Tag 'latest' siliniyor..."
             git push --delete origin latest || true
