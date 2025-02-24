@@ -71,16 +71,12 @@ jobs:
         run  : |
           7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}/*
 
-      - name: 📤 Build Dosyalarını Sakla
-        run: |
-          mkdir -p build_outputs
-          mv ${{ matrix.artifact_name }} build_outputs/
-
-      - name: 📥 Build Dosyalarını Yükle
+      - name: 📤 Artifact Yükle
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: build_outputs
-          path: build_outputs
+          compression-level: 0
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
 
   release:
     needs   : build
@@ -93,21 +89,20 @@ jobs:
           VERSION=$(TZ="Europe/Istanbul" date +"%Y.%m.%d-%H.%M.%S")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: 📥 Build Dosyalarını İndir
+      - name: 📥 Artifact'leri İndir
         uses: actions/download-artifact@v4.1.8
         with:
-          name: build_outputs
-          path: build_outputs
+          path: artifacts
 
       - name: 🔥 Mevcut "latest" Release ve Tag'i Sil
         run : |
           RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/latest" | jq -r .id)
+            "https://api.github.com/repos/${{ github.event.repository.name }}/releases/tags/latest" | jq -r .id)
 
           if [[ "$RELEASE_ID" != "null" ]]; then
             echo "Mevcut release ($RELEASE_ID) siliniyor..."
             curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
+              "https://api.github.com/repos/${{ github.event.repository.name }}/releases/$RELEASE_ID"
 
             echo "Tag 'latest' siliniyor..."
             git push --delete origin latest || true
@@ -123,4 +118,4 @@ jobs:
           body       : "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
           draft      : false
           prerelease : false
-          files      : build_outputs/*
+          files      : artifacts/**
