@@ -30,6 +30,18 @@ jobs:
             output_dir    : "build/windows"
             artifact_name : "windows-build.7z"
 
+          - platform      : macos
+            os            : macos-latest
+            build_command : "flet build macos -v"
+            output_dir    : "build/macos"
+            artifact_name : "macos-build.7z"
+
+          - platform      : web
+            os            : ubuntu-latest
+            build_command : "flet build web -v"
+            output_dir    : "build/web"
+            artifact_name : "web-build.7z"
+
           - platform      : android
             os            : ubuntu-latest
             build_command : "flet build apk -v"
@@ -79,8 +91,11 @@ jobs:
           path: ${{ matrix.artifact_name }}
 
   release:
-    needs   : build
-    runs-on : ubuntu-latest
+    needs       : build
+    runs-on     : ubuntu-latest
+    permissions :
+      contents: write
+
     steps   :
       - name: 🚀 Repository’yi Kopyala
         uses: actions/checkout@v4.2.2
