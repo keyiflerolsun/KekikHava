@@ -22,25 +22,25 @@ jobs:
             os            : ubuntu-latest
             build_command : "flet build linux -v"
             output_dir    : "build/linux"
-            artifact_name : "linux-build.zip"
+            artifact_name : "linux-build.7z"
 
           - platform      : windows
             os            : windows-latest
             build_command : "flet build windows -v"
             output_dir    : "build/windows"
-            artifact_name : "windows-build.zip"
+            artifact_name : "windows-build.7z"
 
           - platform      : android
             os            : ubuntu-latest
             build_command : "flet build apk -v"
             output_dir    : "build/apk"
-            artifact_name : "android-build.zip"
+            artifact_name : "android-build.7z"
 
           - platform      : ipa
             os            : macos-latest
             build_command : "flet build ipa -v"
             output_dir    : "build/ipa"
-            artifact_name : "ipa-build.zip"
+            artifact_name : "ipa-build.7z"
 
     steps:
       - name: 🚀 Repository’yi Kopyala
@@ -67,63 +67,57 @@ jobs:
           PYTHONIOENCODING: utf-8
         run  : ${{ matrix.build_command }}
 
-      - name  : 🗜️ Çıktıyı Arşivle
-        shell : bash
-        run   : |
-          cd ${{ matrix.output_dir }}
-          # Eğer build işlemi önceden artifact'ı oluşturduysa, yeniden zip'e almamak için taşıyoruz.
-          if [ -f "${{ matrix.artifact_name }}" ]; then
-            echo "Önceden oluşturulmuş zip bulundu, taşınıyor."
-            mv ${{ matrix.artifact_name }} ..
-          else
-            if command -v 7z; then
-              7z a -tzip -mx9 ../${{ matrix.artifact_name }} * -xr!${{ matrix.artifact_name }}
-            else
-              zip -r ../${{ matrix.artifact_name }} * -x "*${{ matrix.artifact_name }}"
-            fi
-          fi
+      - name : 📦 Çıktıları Sıkıştır
+        run  : |
+          7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
 
-      - name: 📤 Artifact Olarak Yükle
+      - name: 📤 Artifact Yükle
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ${{ matrix.artifact_name }}
-          path: build/${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
 
   release:
     needs   : build
     runs-on : ubuntu-latest
     steps   :
-      - name : Download Artifacts
-        uses : actions/download-artifact@v4
-
-      - name : Set Version Number
+      - name : 🏷️ Versiyon Numarası Al
         id   : version
+        shell: bash
         run  : |
-          VERSION=$(TZ="Turkey" date +"%Y.%m.%d-%H:%M:%S")
+          VERSION=$(TZ="Europe/Istanbul" date +"%Y.%m.%d-%H.%M.%S")
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version: $VERSION"
 
-      - name : Delete Existing Latest Release
-        run  : |
-          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
-          if [ "$RELEASE_ID" != "null" ]; then
-            echo "Deleting release $RELEASE_ID..."
-            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
+      - name: 📥 Artifact'leri İndir
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: artifacts
+
+      - name: 🔥 Mevcut "latest" Release ve Tag'i Sil
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
+
+          if [[ "$RELEASE_ID" != "null" ]]; then
+            echo "Mevcut release ($RELEASE_ID) siliniyor..."
+            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
+
+            echo "Tag 'latest' siliniyor..."
             git push --delete origin latest || true
           else
-            echo "No existing release found, continuing..."
+            echo "Mevcut release bulunamadı, devam ediliyor..."
           fi
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: 📤 Yeni Release Oluştur
+        uses: softprops/action-gh-release@v2.2.1
         with:
           tag_name   : latest
           name       : "Güncel Sürüm"
           body       : "${{ env.VERSION }} - ${{ github.sha }} için otomatik oluşturulan sürüm."
           draft      : false
           prerelease : false
-          files      : |
-            linux-build.zip
-            windows-build.zip
-            android-build.zip
-            ipa-build.zip
+          files      : artifacts/**
