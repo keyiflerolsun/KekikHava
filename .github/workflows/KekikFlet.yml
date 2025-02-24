@@ -59,8 +59,8 @@ jobs:
       - name: Linux Build Dependencies (sadece Linux için)
         if  : matrix.platform == 'linux'
         run : |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build libgtk-3-dev build-essential
+          sudo apt update -qq
+          sudo apt install -y ninja-build libgtk-3-dev build-essential
 
       - name : 🔨 Projeyi Derle
         env  :
@@ -69,7 +69,7 @@ jobs:
 
       - name : 📦 Çıktıları Sıkıştır
         run  : |
-          7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}
+          7z a -mx9 ${{ matrix.artifact_name }} ${{ matrix.output_dir }}/*
 
       - name: 📤 Artifact Yükle
         uses: actions/upload-artifact@v4.6.1
@@ -94,17 +94,14 @@ jobs:
           path: artifacts
 
       - name: 🔥 Mevcut "latest" Release ve Tag'i Sil
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          REPO: ${{ github.repository }}
-        run: |
-          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$REPO/releases/tags/latest" | jq -r .id)
+        run : |
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.event.repository.name }}/releases/tags/latest" | jq -r .id)
 
           if [[ "$RELEASE_ID" != "null" ]]; then
             echo "Mevcut release ($RELEASE_ID) siliniyor..."
-            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/$REPO/releases/$RELEASE_ID"
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.event.repository.name }}/releases/$RELEASE_ID"
 
             echo "Tag 'latest' siliniyor..."
             git push --delete origin latest || true
